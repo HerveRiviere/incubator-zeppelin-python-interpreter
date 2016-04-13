@@ -20,6 +20,8 @@ In conf/zeppelin-site.xml, add the interpreter in the zeppelin.interpreters prop
 Restart zeppelin, python interpreter must be present in the webapp interpreters page
 
 ### Use of matplotlib
+=======
+Use of matplotlib
 <pre>
 import matplotlib.pyplot as plt
 
