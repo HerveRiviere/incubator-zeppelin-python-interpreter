@@ -9,10 +9,10 @@ To know more about Zeppelin :  [http://zeppelin.incubator.apache.org](http://zep
 ##Features of this python interpreter : 
 ### Easy installation : the interpreter just need the computer python path 
 [![pythonpath](/docs/interpreter/screenshots/pyInterpreter3.png)](/docs/interpreter/screenshots/pyInterpreter3.png)
-No dependency with spark or others framework.
-Python and zeppelin must be installed on the same computer
-Python code is executed on Zeppelin server only.
-All installed python library (with pip, easy_install...) will be available in the interpreter
+* No dependency with spark or others framework.
+* Python and zeppelin must be installed on the same computer
+* Python code is executed on Zeppelin server only.
+* All installed python libraries (with pip, easy_install...) will be available in the interpreter
 
 ###%python, example
 [![pythonexec](/docs/interpreter/screenshots/pyInterpreter1.png)](/docs/interpreter/screenshots/pyInterpreter1.png)
@@ -45,7 +45,20 @@ In conf/zeppelin-site.xml, add the interpreter in the zeppelin.interpreters prop
 
 Restart zeppelin, python interpreter must be present in the webapp interpreters page
 
+##Use matplotlib without XServer
 
+Matplotlib needs a X server to plot graph.
+
+If you don't have any XServer and you don't want to install one, you can use [Xvfb](http://www.x.org/archive/X11R7.6/doc/man/man1/Xvfb.1.xhtml) to simulate it. 
+
+Althought Xvfb doesn't display anything, you will have any issue to use the python interpreter, matplotlib and Xvfb. The interpreter plot the graph on X and then extracts svg path (in strings) to send it to the zeppelin webapp and finally svg paths will be interpreted by your browser.
+
+
+##Not yet implemented in this interpreter
+* Form
+* Clean paragraph stop. Currently a cancel during a paragraph execution will kill the entire interpreter
+* Interpreter shared variable (z.set / z.get...)
+* Add functions to display pandas dataframe in the %table display 
 
 **License:** [Apache 2.0](https://github.com/apache/incubator-zeppelin/blob/master/LICENSE)
 
