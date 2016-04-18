@@ -19,14 +19,35 @@ sys.displayhook = lambda x: None
 
 import StringIO
 
-def zeppelin_show(p):
+def zeppelin_show(p,width=0,height=0):
  img = StringIO.StringIO()
  p.savefig(img, format='svg')
  img.seek(0)
- print '%html ' + img.buf
+ style=""
+ if(width>0):
+  style+='width:'+width
+ if(height>0):
+  if(len(style)>0):
+   style+=","
+  style+='height:'+height
+ print "%html <div style='"+style+"'>" + img.buf+"<div>"
+
+
 
 def printHelp():
- print "Interpreter help : TO DO..."
+ print '\r==========================='
+ print '\rPYTHON Interpreter help'
+ print '\r===========================\n'
+ print '\rWARNING : Cancel paragraph exexution will stop the whole interpreter !\n'
+ print '''\rDISPLAY MATPLOTLIB GRAPH :
+import matplotlib.pyplot as plt
+plt.figure()
+(.. ..)
+zeppelin_show(plt)
+plt.close()
+'''
+ print '\rNB : zeppelin_show function can take optional parameters to adapt graph width and height'
+ print "\rexample : zeppelin_show(plt,width='50px')/ zeppelin_show(plt,height='150px') \r"
 
 
 printHelp()
