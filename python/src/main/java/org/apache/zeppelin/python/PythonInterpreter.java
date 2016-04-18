@@ -155,7 +155,7 @@ public class PythonInterpreter extends Interpreter {
           output += "Syntax error ! ";
           break;
         }
-        output += line + "\n";
+        output += "\r" + line + "\n";
       }
 
     } catch (IOException e) {
