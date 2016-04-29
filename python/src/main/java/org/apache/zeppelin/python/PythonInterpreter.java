@@ -41,197 +41,197 @@ import java.util.Properties;
  * Shell interpreter for Zeppelin.
  */
 public class PythonInterpreter extends Interpreter {
-  Logger logger = LoggerFactory.getLogger(PythonInterpreter.class);
+    Logger logger = LoggerFactory.getLogger(PythonInterpreter.class);
 
-  public static final String PYTHON_PATH = "python.path";
-  public static final String DEFAULT_PYTHON_PATH = "/usr/bin/python";
-  private String pythonPath;
+    public static final String PYTHON_PATH = "python.path";
+    public static final String DEFAULT_PYTHON_PATH = "/usr/bin/python";
+    private String pythonPath;
 
-  InputStream stdout;
-  OutputStream stdin;
-  BufferedWriter writer;
-  BufferedReader reader;
-  Process process = null;
-  private long pythonPid;
+    InputStream stdout;
+    OutputStream stdin;
+    BufferedWriter writer;
+    BufferedReader reader;
+    Process process = null;
+    private long pythonPid;
 
-  static {
-    Interpreter.register(
-            "python",
-            "python",
-            PythonInterpreter.class.getName(),
-            new InterpreterPropertyBuilder()
-              .add(PYTHON_PATH, DEFAULT_PYTHON_PATH,
-                "Python path. Default : /usr/bin/python")
-              .build()
-    );
-  }
-
-
-
-  public PythonInterpreter(Properties property) {
-    super(property);
-  }
-
-  @Override
-  public void open() {
-
-    logger.info("Starting Python interpreter .....");
-
-
-
-    pythonPath = getProperty(PYTHON_PATH);
-
-    logger.info("Python path is set to:" + pythonPath );
-
-
-    ProcessBuilder builder = new ProcessBuilder(pythonPath, "-iu");
-
-    builder.redirectErrorStream(true);
-    try {
-      process = builder.start();
-    } catch (IOException e) {
-      logger.info(e.getMessage());
-    }
-    pythonPid = getPidOfProcess(process);
-    logger.info("python PID : " + pythonPid);
-    stdout = process.getInputStream ();
-    stdin = process.getOutputStream();
-    writer = new BufferedWriter(new OutputStreamWriter(stdin));
-    reader = new BufferedReader(new InputStreamReader(stdout));
-    try {
-      bootStrapInterpreter();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-
-  private void bootStrapInterpreter() throws IOException {
-
-    BufferedReader bootstrapReader = new BufferedReader(
-            new InputStreamReader(
-            PythonInterpreter.class.getResourceAsStream("/bootstrap.py")));
-    String line = null;
-    String bootstrapCode = "";
-    while ((line = bootstrapReader.readLine()) != null)
-    {
-      bootstrapCode += line + "\n";
+    static {
+        Interpreter.register(
+                "python",
+                "python",
+                PythonInterpreter.class.getName(),
+                new InterpreterPropertyBuilder()
+                        .add(PYTHON_PATH, DEFAULT_PYTHON_PATH,
+                                "Python path. Default : /usr/bin/python")
+                        .build()
+        );
     }
 
-    logger.info("Bootstrap python interpreter with \n " + bootstrapCode);
-    writer.write(bootstrapCode);
-    writer.flush();
-  }
 
-  private long getPidOfProcess(Process p) {
-    long pid = -1;
 
-    try {
-      if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
-        Field f = p.getClass().getDeclaredField("pid");
-        f.setAccessible(true);
-        pid = f.getLong(p);
-        f.setAccessible(false);
-      }
-    } catch (Exception e) {
-      pid = -1;
-    }
-    return pid;
-  }
-
-  @Override
-  public void close() {
-
-    logger.info("closing Python interpreter .....");
-    try {
-      process.destroy();
-      reader.close();
-      writer.close();
-      stdin.close();
-      stdout.close();
-    } catch (IOException e) {
-      logger.info(e.getMessage());
+    public PythonInterpreter(Properties property) {
+        super(property);
     }
 
-  }
+    @Override
+    public void open() {
+
+        logger.info("Starting Python interpreter .....");
 
 
-  @Override
-  public InterpreterResult interpret(String cmd, InterpreterContext contextInterpreter) {
-    try {
-      logger.info("Sending : \n " + cmd);
-      writer.write(cmd + "\n\n");
-      writer.write("print (\"*!?flush reader!?*\")\n\n");
-      writer.flush();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
 
-    String output = "";
-    String line;
+        pythonPath = getProperty(PYTHON_PATH);
 
-    try {
-      while (!(line = reader.readLine ()).contains("*!?flush reader!?*")){
-        logger.info("Readed line from python shell : " + line);
-        if (line.equals("...")){
-          logger.info("Syntax error ! ");
-          output += "Syntax error ! ";
-          break;
+        logger.info("Python path is set to:" + pythonPath );
+
+
+        ProcessBuilder builder = new ProcessBuilder(pythonPath, "-iu");
+
+        builder.redirectErrorStream(true);
+        try {
+            process = builder.start();
+        } catch (IOException e) {
+            logger.info(e.getMessage());
         }
-        output += "\r" + line + "\n";
-      }
-
-    } catch (IOException e) {
-      e.printStackTrace();
+        pythonPid = getPidOfProcess(process);
+        logger.info("python PID : " + pythonPid);
+        stdout = process.getInputStream ();
+        stdin = process.getOutputStream();
+        writer = new BufferedWriter(new OutputStreamWriter(stdin));
+        reader = new BufferedReader(new InputStreamReader(stdout));
+        try {
+            bootStrapInterpreter();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-    return new InterpreterResult(Code.SUCCESS, output.replaceAll(">>>", "")
-            .replaceAll("\\.\\.\\.", "").trim());
-  }
 
-  private Job getRunningJob(String paragraphId) {
-    Job foundJob = null;
-    Collection<Job> jobsRunning = getScheduler().getJobsRunning();
-    for (Job job : jobsRunning) {
-      if (job.getId().equals(paragraphId)) {
-        foundJob = job;
-      }
+    private void bootStrapInterpreter() throws IOException {
+
+        BufferedReader bootstrapReader = new BufferedReader(
+                new InputStreamReader(
+                        PythonInterpreter.class.getResourceAsStream("/bootstrap.py")));
+        String line = null;
+        String bootstrapCode = "";
+        while ((line = bootstrapReader.readLine()) != null)
+        {
+            bootstrapCode += line + "\n";
+        }
+
+        logger.info("Bootstrap python interpreter with \n " + bootstrapCode);
+        writer.write(bootstrapCode);
+        writer.flush();
     }
-    return foundJob;
-  }
 
-  @Override
-  public void cancel(InterpreterContext context) {
-    logger.info("Asking to cancel paragraph execution....");
-    if (pythonPid > -1) {
-      try {
-        Runtime.getRuntime().exec("kill -SIGINT " + pythonPid);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
+    private long getPidOfProcess(Process p) {
+        long pid = -1;
+
+        try {
+            if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
+                Field f = p.getClass().getDeclaredField("pid");
+                f.setAccessible(true);
+                pid = f.getLong(p);
+                f.setAccessible(false);
+            }
+        } catch (Exception e) {
+            pid = -1;
+        }
+        return pid;
     }
-    else {
-      logger.info("Non UNIX/Linux system, close the interpreter");
-      close();
+
+    @Override
+    public void close() {
+
+        logger.info("closing Python interpreter .....");
+        try {
+            process.destroy();
+            reader.close();
+            writer.close();
+            stdin.close();
+            stdout.close();
+        } catch (IOException e) {
+            logger.info(e.getMessage());
+        }
+
     }
-  }
-  @Override
-  public FormType getFormType() {
-    return FormType.SIMPLE;
-  }
 
-  @Override
-  public int getProgress(InterpreterContext context) {
-    return 0;
-  }
 
-  @Override
-  public Scheduler getScheduler() {
-    return SchedulerFactory.singleton().createOrGetParallelScheduler(
-            PythonInterpreter.class.getName() + this.hashCode(), 10);
-  }
+    @Override
+    public InterpreterResult interpret(String cmd, InterpreterContext contextInterpreter) {
+        try {
+            logger.info("Sending : \n " + cmd);
+            writer.write(cmd + "\n\n");
+            writer.write("print (\"*!?flush reader!?*\")\n\n");
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-  @Override
-  public List<String> completion(String buf, int cursor) {
-    return null;
-  }
+        String output = "";
+        String line;
+
+        try {
+            while (!(line = reader.readLine ()).contains("*!?flush reader!?*")){
+                logger.info("Readed line from python shell : " + line);
+                if (line.equals("...")){
+                    logger.info("Syntax error ! ");
+                    output += "Syntax error ! ";
+                    break;
+                }
+                output += "\r" + line + "\n";
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new InterpreterResult(Code.SUCCESS, output.replaceAll(">>>", "")
+                .replaceAll("\\.\\.\\.", "").trim());
+    }
+
+    private Job getRunningJob(String paragraphId) {
+        Job foundJob = null;
+        Collection<Job> jobsRunning = getScheduler().getJobsRunning();
+        for (Job job : jobsRunning) {
+            if (job.getId().equals(paragraphId)) {
+                foundJob = job;
+            }
+        }
+        return foundJob;
+    }
+
+    @Override
+    public void cancel(InterpreterContext context) {
+        logger.info("Asking to cancel paragraph execution....");
+        if (pythonPid > -1) {
+            try {
+                Runtime.getRuntime().exec("kill -SIGINT " + pythonPid);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            logger.info("Non UNIX/Linux system, close the interpreter");
+            close();
+        }
+    }
+    @Override
+    public FormType getFormType() {
+        return FormType.SIMPLE;
+    }
+
+    @Override
+    public int getProgress(InterpreterContext context) {
+        return 0;
+    }
+
+    @Override
+    public Scheduler getScheduler() {
+        return SchedulerFactory.singleton().createOrGetParallelScheduler(
+                PythonInterpreter.class.getName() + this.hashCode(), 10);
+    }
+
+    @Override
+    public List<String> completion(String buf, int cursor) {
+        return null;
+    }
 
 }
