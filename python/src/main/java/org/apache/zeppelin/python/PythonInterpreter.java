@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,7 @@ public class PythonInterpreter extends Interpreter {
   BufferedWriter writer;
   BufferedReader reader;
   Process process = null;
-
+  private long pythonPid;
 
   static {
     Interpreter.register(
@@ -64,6 +65,8 @@ public class PythonInterpreter extends Interpreter {
               .build()
     );
   }
+
+
 
   public PythonInterpreter(Properties property) {
     super(property);
@@ -82,12 +85,15 @@ public class PythonInterpreter extends Interpreter {
 
 
     ProcessBuilder builder = new ProcessBuilder(pythonPath, "-iu");
+
     builder.redirectErrorStream(true);
     try {
       process = builder.start();
     } catch (IOException e) {
       logger.info(e.getMessage());
     }
+    pythonPid = getPidOfProcess(process);
+    logger.info("python PID : " + pythonPid);
     stdout = process.getInputStream ();
     stdin = process.getOutputStream();
     writer = new BufferedWriter(new OutputStreamWriter(stdin));
@@ -116,6 +122,22 @@ public class PythonInterpreter extends Interpreter {
     writer.flush();
   }
 
+  private long getPidOfProcess(Process p) {
+    long pid = -1;
+
+    try {
+      if (p.getClass().getName().equals("java.lang.UNIXProcess")) {
+        Field f = p.getClass().getDeclaredField("pid");
+        f.setAccessible(true);
+        pid = f.getLong(p);
+        f.setAccessible(false);
+      }
+    } catch (Exception e) {
+      pid = -1;
+    }
+    return pid;
+  }
+
   @Override
   public void close() {
 
@@ -138,7 +160,7 @@ public class PythonInterpreter extends Interpreter {
     try {
       logger.info("Sending : \n " + cmd);
       writer.write(cmd + "\n\n");
-      writer.write("print \"*!?flush reader!?*\"\n\n");
+      writer.write("print (\"*!?flush reader!?*\")\n\n");
       writer.flush();
     } catch (IOException e) {
       e.printStackTrace();
@@ -178,8 +200,18 @@ public class PythonInterpreter extends Interpreter {
 
   @Override
   public void cancel(InterpreterContext context) {
-    close();
-
+    logger.info("Asking to cancel paragraph execution....");
+    if (pythonPid > -1) {
+      try {
+        Runtime.getRuntime().exec("kill -SIGINT " + pythonPid);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+    else {
+      logger.info("Non UNIX/Linux system, close the interpreter");
+      close();
+    }
   }
   @Override
   public FormType getFormType() {
