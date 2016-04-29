@@ -49,8 +49,7 @@ def zeppelin_show(p,width=0,height=0):
 def help():
  print ('%html')
  print ('<h2>Python Interpreter help</h2>')
- print ('<div><b>WARNING</b> : Cancel paragraph exexution will stop the whole interpreter !</div>')
- print ('<h3>Forms</h3>')
+  print ('<h3>Forms</h3>')
  print ('<h4>Input forms</h4>')
  print ('<pre> print "&#36{input_form(name)=defaultValue}"</pre>')
  print ('<h4>Checkbox forms</h4>')

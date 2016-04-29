@@ -55,8 +55,6 @@ Althought Xvfb doesn't display anything, you will have any issue to use the pyth
 
 
 ##Not yet implemented in this interpreter
-* Form
-* Clean paragraph stop. Currently a cancel during a paragraph execution will kill the entire interpreter
 * Interpreter shared variable (z.set / z.get...)
 * Add functions to display pandas dataframe in the %table display 
 
