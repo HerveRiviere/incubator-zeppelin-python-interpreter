@@ -27,29 +27,29 @@ signal.signal(signal.SIGINT, intHandler)
 
 
 try:
- from StringIO import StringIO
+ import StringIO as io
 except ImportError:
- from io import StringIO
+ import io as io
 
-def zeppelin_show(p,width=0,height=0):
- img = StringIO.StringIO()
+def zeppelin_show(p,width="0",height="0"):
+ img = io.StringIO()
  p.savefig(img, format='svg')
  img.seek(0)
  style=""
- if(width>0):
+ if(width!="0"):
   style+='width:'+width
- if(height>0):
-  if(len(style)>0):
+ if(height!="0"):
+  if(len(style)!=0):
    style+=","
   style+='height:'+height
- print ("%html <div style='"+style+"'>" + img.buf+"<div>")
+ print ("%html <div style='"+style+"'>" + img.read()+"<div>")
 
 
 
 def help():
  print ('%html')
  print ('<h2>Python Interpreter help</h2>')
-  print ('<h3>Forms</h3>')
+ print ('<h3>Forms</h3>')
  print ('<h4>Input forms</h4>')
  print ('<pre> print "&#36{input_form(name)=defaultValue}"</pre>')
  print ('<h4>Checkbox forms</h4>')
