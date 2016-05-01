@@ -42,8 +42,8 @@ public class PythonInterpreter extends Interpreter {
 
   public static final String BOOTSTRAP_PY = "/bootstrap.py";
   public static final String BOOTSTRAP_INPUT_PY = "/bootstrap_input.py";
-  public static final String PYTHON_PATH = "python.path";
-  public static final String DEFAULT_PYTHON_PATH = "/usr/bin/python";
+  public static final String PYTHON_PATH = "python";
+  public static final String DEFAULT_PYTHON_PATH = "python";
   private String pythonPath;
 
   private Integer port;
@@ -64,7 +64,7 @@ public class PythonInterpreter extends Interpreter {
       PythonInterpreter.class.getName(),
       new InterpreterPropertyBuilder()
         .add(PYTHON_PATH, DEFAULT_PYTHON_PATH,
-                "Python path. Default : /usr/bin/python")
+                "Python directory. Default : python (assume python is in your $PATH)")
         .build()
     );
   }
